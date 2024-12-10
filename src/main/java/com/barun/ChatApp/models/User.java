@@ -1,4 +1,4 @@
-package com.barun.ChatApp.controllers;
+package com.barun.ChatApp.models;
 
 import jakarta.persistence.*;
 
