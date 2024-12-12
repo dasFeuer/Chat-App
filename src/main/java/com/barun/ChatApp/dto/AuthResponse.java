@@ -5,6 +5,8 @@ public class AuthResponse {
     private String token;
     private String username;
 
+    public AuthResponse() {}
+
     public AuthResponse(String username, String token) {
         this.username = username;
         this.token = token;
@@ -24,5 +26,13 @@ public class AuthResponse {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    @Override
+    public String toString() {
+        return "AuthResponse{" +
+                "username='" + username + '\'' +
+                ", token='" + token + '\'' +
+                '}';
     }
 }
