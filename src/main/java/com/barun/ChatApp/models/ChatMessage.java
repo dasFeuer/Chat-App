@@ -1,33 +1,45 @@
 package com.barun.ChatApp.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
-
 
 @Entity
 @Table(name = "message")
 public class ChatMessage {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "sender_id")
+    @JoinColumn(name = "sender_id", nullable = false)
+    @NotNull(message = "Sender is required")
     private User sender;
 
     @ManyToOne
-    @JoinColumn(name = "receiver_id")
+    @JoinColumn(name = "receiver_id", nullable = false)
+    @NotNull(message = "Receiver is required")
     private User receiver;
 
     @Column(nullable = false)
+    @NotNull(message = "Content cannot be null")
     private String content;
 
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    //Constructors
-    public ChatMessage(){}
+    public ChatMessage() {
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public ChatMessage(User sender, User receiver, String content) {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.content = content;
+        this.timestamp = LocalDateTime.now();
+    }
 
     public Long getId() {
         return id;
