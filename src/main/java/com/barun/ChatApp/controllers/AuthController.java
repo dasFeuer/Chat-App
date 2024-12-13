@@ -2,7 +2,7 @@ package com.barun.ChatApp.controllers;
 
 import com.barun.ChatApp.dto.AuthResponse;
 import com.barun.ChatApp.dto.LoginDto;
-import com.barun.ChatApp.dto.UserRegistrationDto;
+import com.barun.ChatApp.dto.RegisterDto;
 import com.barun.ChatApp.models.User;
 import com.barun.ChatApp.security.JwtTokenProvider;
 import com.barun.ChatApp.services.UserService;
@@ -32,7 +32,7 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> registerUser(@Valid @RequestBody UserRegistrationDto registrationDto) {
+    public ResponseEntity<AuthResponse> registerUser(@Valid @RequestBody RegisterDto registrationDto) {
         logger.info("Registering user: {}", registrationDto.getUsername());
         User user = userService.registerNewUser(registrationDto);
         String token = jwtTokenProvider.createToken(user.getUsername(), user.getRole());

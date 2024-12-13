@@ -1,5 +1,6 @@
 package com.barun.ChatApp.controllers;
 
+import com.barun.ChatApp.dto.MessageDto;
 import com.barun.ChatApp.models.ChatMessage;
 import com.barun.ChatApp.services.ChatMessageService;
 import org.slf4j.Logger;
@@ -20,29 +21,35 @@ public class ChatController {
     private ChatMessageService chatMessageService;
 
     @PostMapping("/send")
-    public ResponseEntity<ChatMessage> sendMessage(
-            @RequestParam String senderUsername,
-            @RequestParam String receiverUsername,
-            @RequestParam String content
-    ) {
-        logger.info("Sending message from {} to {}", senderUsername, receiverUsername);
+    public ResponseEntity<ChatMessage> sendMessage(@RequestBody MessageDto messageDto) {
+        logger.info("Sending message from {} to {}", messageDto.getSender(), messageDto.getReceiver());
         ChatMessage message = chatMessageService.sendMessage(
-                senderUsername, receiverUsername, content
+                messageDto.getSender(),
+                messageDto.getReceiver(),
+                messageDto.getContent()
         );
-        logger.info("Message sent successfully from {} to {}", senderUsername, receiverUsername);
+        logger.info("Message sent successfully from {} to {}", messageDto.getSender(), messageDto.getReceiver());
         return ResponseEntity.ok(message);
     }
 
+//    @GetMapping("/history")
+//    public ResponseEntity<List<ChatMessage>> getChatHistory(
+//            @RequestParam String senderUsername,
+//            @RequestParam String receiverUsername
+//    ) {
+//        logger.info("Fetching chat history between {} and {}", senderUsername, receiverUsername);
+//        List<ChatMessage> messages = chatMessageService.getChatHistory(
+//                senderUsername, receiverUsername
+//        );
+//        logger.info("Chat history fetched successfully between {} and {}", senderUsername, receiverUsername);
+//        return ResponseEntity.ok(messages);
+//    }
+
     @GetMapping("/history")
     public ResponseEntity<List<ChatMessage>> getChatHistory(
-            @RequestParam String senderUsername,
-            @RequestParam String receiverUsername
-    ) {
-        logger.info("Fetching chat history between {} and {}", senderUsername, receiverUsername);
-        List<ChatMessage> messages = chatMessageService.getChatHistory(
-                senderUsername, receiverUsername
-        );
-        logger.info("Chat history fetched successfully between {} and {}", senderUsername, receiverUsername);
+            @RequestParam String sender,
+            @RequestParam String receiver) {
+        List<ChatMessage> messages = chatMessageService.getChatHistory(sender, receiver);
         return ResponseEntity.ok(messages);
     }
 }
