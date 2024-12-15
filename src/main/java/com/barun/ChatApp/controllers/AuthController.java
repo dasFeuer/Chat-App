@@ -16,6 +16,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -57,5 +59,10 @@ public class AuthController {
         String token = jwtTokenProvider.createToken(user.getUsername(), user.getRole());
         logger.info("User logged in successfully: {}", loginDto.getUsername());
         return ResponseEntity.ok(new AuthResponse(user.getUsername(), token));
+    }
+
+    @GetMapping("all-user")
+    public List<User> getAllUser(){
+        return userService.getAllUser();
     }
 }

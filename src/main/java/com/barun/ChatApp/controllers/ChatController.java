@@ -7,9 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-        import java.util.List;
+import java.util.List;
 
 @RestController
 @RequestMapping("/chat")
@@ -32,24 +34,13 @@ public class ChatController {
         return ResponseEntity.ok(message);
     }
 
-//    @GetMapping("/history")
-//    public ResponseEntity<List<ChatMessage>> getChatHistory(
-//            @RequestParam String senderUsername,
-//            @RequestParam String receiverUsername
-//    ) {
-//        logger.info("Fetching chat history between {} and {}", senderUsername, receiverUsername);
-//        List<ChatMessage> messages = chatMessageService.getChatHistory(
-//                senderUsername, receiverUsername
-//        );
-//        logger.info("Chat history fetched successfully between {} and {}", senderUsername, receiverUsername);
-//        return ResponseEntity.ok(messages);
-//    }
-
     @GetMapping("/history")
-    public ResponseEntity<List<ChatMessage>> getChatHistory(
-            @RequestParam String sender,
-            @RequestParam String receiver) {
-        List<ChatMessage> messages = chatMessageService.getChatHistory(sender, receiver);
+    public ResponseEntity<List<ChatMessage>> getChatHistory() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String loggedInUsername = authentication.getName();
+        logger.info("Fetching chat history for user: {}", loggedInUsername);
+        List<ChatMessage> messages = chatMessageService.getMessagesForUser(loggedInUsername);
+        logger.info("Chat history fetched successfully for user: {}", loggedInUsername);
         return ResponseEntity.ok(messages);
     }
 }
