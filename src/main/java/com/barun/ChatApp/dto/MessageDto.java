@@ -5,7 +5,11 @@ public class MessageDto {
     private String receiver;
     private String content;
 
-    public MessageDto () {}
+    public MessageDto(String sender, String receiver, String content) {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.content = content;
+    }
 
     public String getSender() {
         return sender;
@@ -29,5 +33,14 @@ public class MessageDto {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    @Override
+    public String toString() {
+        return "MessageDto{" +
+                "sender='" + sender + '\'' +
+                ", receiver='" + receiver + '\'' +
+                ", content='" + content + '\'' +
+                '}';
     }
 }
