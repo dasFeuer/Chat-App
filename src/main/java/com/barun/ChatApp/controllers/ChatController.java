@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/chat")
@@ -30,39 +31,17 @@ public class ChatController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-//    @MessageMapping("/chat.send")
-//    public void sendMessage(@Payload MessageDto messageDto,
-//                            SimpMessageHeaderAccessor headerAccessor) {
-//        String sender = headerAccessor.getUser().getName();
-//        messageDto.setSender(sender); // Override sender with authenticated user
-//
-//        // Save the message to database
-//        ChatMessage savedMessage = chatMessageService.sendMessage(
-//                messageDto.getSender(),
-//                messageDto.getReceiver(),
-//                messageDto.getContent()
-//        );
-//
-//        // Send to specific user
-//        messagingTemplate.convertAndSendToUser(
-//                messageDto.getReceiver(),
-//                "/queue/messages",
-//                messageDto
-//        );
-//    }
-
     @MessageMapping("/chat.send")
     public void sendMessage(@Payload @Valid MessageDto messageDto,
                             SimpMessageHeaderAccessor headerAccessor) {
         try {
-            String sender = headerAccessor.getUser().getName();
-            if (sender == null) {
-                throw new IllegalArgumentException("Sender is not authenticated");
-            }
-            messageDto.setSender(sender);
+            String sender = Objects.requireNonNull(headerAccessor.getUser()).getName();
+
+            logger.info("Sending message from {} to {}: {}",
+                    sender, messageDto.getReceiver(), messageDto.getContent());
 
             ChatMessage savedMessage = chatMessageService.sendMessage(
-                    messageDto.getSender(),
+                    sender,
                     messageDto.getReceiver(),
                     messageDto.getContent()
             );
@@ -72,8 +51,10 @@ public class ChatController {
                     "/queue/messages",
                     savedMessage
             );
+
+            logger.info("Message sent successfully to user queue: {}", messageDto.getReceiver());
         } catch (Exception e) {
-            logger.error("Error processing WebSocket message: {}", e.getMessage());
+            logger.error("Error processing WebSocket message: {}", e.getMessage(), e);
         }
     }
 
