@@ -4,54 +4,66 @@ import com.barun.ChatApp.models.ChatMessage;
 import com.barun.ChatApp.models.User;
 import com.barun.ChatApp.repositories.ChatMessageRepository;
 import com.barun.ChatApp.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ChatMessageService {
 
-    @Autowired
-    private ChatMessageRepository chatMessageRepository;
+    private static final Logger logger = LoggerFactory.getLogger(ChatMessageService.class);
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
-    @Transactional
-    public ChatMessage sendMessage(String senderUsername, String receiverUsername, String content) {
-        User sender = userRepository.findByUsername(senderUsername)
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
-        User receiver = userRepository.findByUsername(receiverUsername)
-                .orElseThrow(() -> new RuntimeException("Receiver not found"));
-
-        ChatMessage message = new ChatMessage();
-        message.setSender(sender);
-        message.setReceiver(receiver);
-        message.setContent(content);
-
-        return chatMessageRepository.save(message);
-    }
-
-    public List<ChatMessage> getChatHistory(String senderUsername, String receiverUsername) {
-        User sender = userRepository.findByUsername(senderUsername)
-                .orElseThrow(() -> new RuntimeException("Sender not found"));
-        User receiver = userRepository.findByUsername(receiverUsername)
-                .orElseThrow(() -> new RuntimeException("Receiver not found"));
-
-        return chatMessageRepository.findBySenderIdAndReceiverIdOrderByTimestampAsc(
-                sender.getId(), receiver.getId()
-        );
+    public ChatMessageService(UserRepository userRepository, ChatMessageRepository chatMessageRepository) {
+        this.userRepository = userRepository;
+        this.chatMessageRepository = chatMessageRepository;
     }
 
     public List<ChatMessage> getMessagesForUser(String username) {
-        User loggedInUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        logger.info("Fetching messages for user: {}", username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> {
+                    logger.error("User not found: {}", username);
+                    return new RuntimeException("User not found");
+                });
 
-        return chatMessageRepository.findByReceiverIdAndSenderIdNotOrderByTimestampAsc(
-                loggedInUser.getId(), loggedInUser.getId()
-        );
+        return chatMessageRepository.findBySenderOrReceiverOrderByTimestampDesc(user, user);
     }
 
+    @Transactional
+    public ChatMessage sendMessage(String senderUsername, String receiverUsername, String content) {
+        logger.info("Sending message from {} to {}", senderUsername, receiverUsername);
+        User sender = userRepository.findByUsername(senderUsername)
+                .orElseThrow(() -> {
+                    logger.error("Sender not found: {}", senderUsername);
+                    return new RuntimeException("Sender not found");
+                });
+
+        Optional<User> receiverOptional = userRepository.findByUsername(receiverUsername);
+
+        ChatMessage message = new ChatMessage();
+        message.setSender(sender);
+        message.setContent(content);
+
+        if (receiverOptional.isPresent()) {
+            message.setReceiver(receiverOptional.get());
+        } else {
+            logger.warn("Receiver not found: {}. Storing message without receiver.", receiverUsername);
+            message.setReceiverUsername(receiverUsername);
+        }
+
+        ChatMessage savedMessage = chatMessageRepository.save(message);
+        logger.info("Message saved successfully: {}", savedMessage.getId());
+        return savedMessage;
+    }
 }
+
+
+
+

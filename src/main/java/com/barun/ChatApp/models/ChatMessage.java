@@ -19,9 +19,11 @@ public class ChatMessage {
     private User sender;
 
     @ManyToOne
-    @JoinColumn(name = "receiver_id", nullable = false)
-    @NotNull(message = "Receiver is required")
+    @JoinColumn(name = "receiver_id")
     private User receiver;
+
+    @Column(name = "receiver_username")
+    private String receiverUsername;
 
     @Column(nullable = false)
     @NotNull(message = "Content cannot be null")
@@ -37,6 +39,13 @@ public class ChatMessage {
     public ChatMessage(User sender, User receiver, String content) {
         this.sender = sender;
         this.receiver = receiver;
+        this.content = content;
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public ChatMessage(User sender, String receiverUsername, String content) {
+        this.sender = sender;
+        this.receiverUsername = receiverUsername;
         this.content = content;
         this.timestamp = LocalDateTime.now();
     }
@@ -65,6 +74,14 @@ public class ChatMessage {
         this.receiver = receiver;
     }
 
+    public String getReceiverUsername() {
+        return receiverUsername;
+    }
+
+    public void setReceiverUsername(String receiverUsername) {
+        this.receiverUsername = receiverUsername;
+    }
+
     public String getContent() {
         return content;
     }
@@ -81,3 +98,4 @@ public class ChatMessage {
         this.timestamp = timestamp;
     }
 }
+
