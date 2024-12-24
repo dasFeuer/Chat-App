@@ -48,9 +48,11 @@ public class ChatController {
             ChatMessage savedMessage = chatMessageService.sendMessage(senderUsername, receiverUsername, messageDto.getContent());
 
             MessageDto savedMessageDto = new MessageDto(
+                    savedMessage.getId(),
                     savedMessage.getSender().getUsername(),
                     savedMessage.getReceiver() != null ? savedMessage.getReceiver().getUsername() : savedMessage.getReceiverUsername(),
-                    savedMessage.getContent()
+                    savedMessage.getContent(),
+                    "CREATE"
             );
 
             logger.info("Sending message to sender's queue: {}", senderUsername);
@@ -88,9 +90,11 @@ public class ChatController {
 
             List<MessageDto> messageDtos = messages.stream()
                     .map(message -> new MessageDto(
+                            message.getId(),
                             message.getSender().getUsername(),
                             message.getReceiver() != null ? message.getReceiver().getUsername() : message.getReceiverUsername(),
-                            message.getContent()
+                            message.getContent(),
+                            null
                     ))
                     .collect(Collectors.toList());
 
@@ -102,4 +106,81 @@ public class ChatController {
         }
     }
 
+    @MessageMapping("/chat.update")
+    public void handleMessageUpdate(@Payload MessageDto messageDto, SimpMessageHeaderAccessor headerAccessor) {
+        try {
+            Authentication authentication = (Authentication) headerAccessor.getUser();
+            if (authentication == null) {
+                logger.error("User not authenticated");
+                throw new IllegalStateException("User not authenticated");
+            }
+
+            String username = authentication.getName();
+            logger.info("Processing message update from {}", username);
+
+            ChatMessage updatedMessage = chatMessageService.updateMessage(messageDto.getId(), messageDto.getContent(), username);
+
+            MessageDto updatedMessageDto = new MessageDto(
+                    updatedMessage.getId(),
+                    updatedMessage.getSender().getUsername(),
+                    updatedMessage.getReceiver() != null ? updatedMessage.getReceiver().getUsername() : updatedMessage.getReceiverUsername(),
+                    updatedMessage.getContent(),
+                    "UPDATE"
+            );
+
+            messagingTemplate.convertAndSendToUser(
+                    username,
+                    "queue/messages",
+                    updatedMessageDto
+            );
+
+            if (updatedMessage.getReceiver() != null) {
+                messagingTemplate.convertAndSendToUser(
+                        updatedMessage.getReceiver().getUsername(),
+                        "queue/messages",
+                        updatedMessageDto
+                );
+            }
+        } catch (Exception e) {
+            logger.error("Error processing message update: ", e);
+            throw e;
+        }
+    }
+
+    @MessageMapping("/chat.delete")
+    public void handleMessageDelete(@Payload MessageDto messageDto, SimpMessageHeaderAccessor headerAccessor) {
+        try {
+            Authentication authentication = (Authentication) headerAccessor.getUser();
+            if (authentication == null) {
+                logger.error("User not authenticated");
+                throw new IllegalStateException("User not authenticated");
+            }
+
+            String username = authentication.getName();
+            logger.info("Processing message deletion from {}", username);
+
+            chatMessageService.deleteMessage(messageDto.getId(), username);
+
+            messageDto.setAction("DELETE");
+
+            messagingTemplate.convertAndSendToUser(
+                    username,
+                    "queue/messages",
+                    messageDto
+            );
+
+            if (messageDto.getReceiver() != null) {
+                messagingTemplate.convertAndSendToUser(
+                        messageDto.getReceiver(),
+                        "queue/messages",
+                        messageDto
+                );
+            }
+        } catch (Exception e) {
+            logger.error("Error processing message deletion: ", e);
+            throw e;
+        }
+    }
 }
+
+

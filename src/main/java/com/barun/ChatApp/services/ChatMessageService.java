@@ -62,6 +62,51 @@ public class ChatMessageService {
         logger.info("Message saved successfully: {}", savedMessage.getId());
         return savedMessage;
     }
+
+    @Transactional
+    public ChatMessage updateMessage(Long messageId, String content, String username) {
+        logger.info("Updating message {} for user {}", messageId, username);
+
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> {
+                    logger.error("Message not found: {}", messageId);
+                    return new RuntimeException("Message not found");
+                });
+
+        if (!message.getSender().getUsername().equals(username)) {
+            logger.error("User {} not authorized to update message {}", username, messageId);
+            throw new RuntimeException("Not authorized to update this message");
+        }
+
+        message.setContent(content);
+        ChatMessage updatedMessage = chatMessageRepository.save(message);
+        logger.info("Message updated successfully: {}", messageId);
+        return updatedMessage;
+    }
+
+    @Transactional
+    public void deleteMessage(Long messageId, String username) {
+        logger.info("Deleting message {} for user {}", messageId, username);
+
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> {
+                    logger.error("Message not found: {}", messageId);
+                    return new RuntimeException("Message not found");
+                });
+
+        if (!message.getSender().getUsername().equals(username)) {
+            logger.error("User {} not authorized to delete message {}", username, messageId);
+            throw new RuntimeException("Not authorized to delete this message");
+        }
+
+        chatMessageRepository.delete(message);
+        logger.info("Message deleted successfully: {}", messageId);
+    }
+
+    public ChatMessage getMessageById(Long messageId) {
+        return chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+    }
 }
 
 
