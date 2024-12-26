@@ -7,18 +7,15 @@ public class MessageDto {
     private String content;
     private String action;
 
-    // Default constructor
     public MessageDto() {
     }
 
-    // Constructor for new messages
     public MessageDto(String sender, String receiver, String content) {
         this.sender = sender;
         this.receiver = receiver;
         this.content = content;
     }
 
-    // Constructor for updates/deletes with ID
     public MessageDto(Long id, String sender, String receiver, String content, String action) {
         this.id = id;
         this.sender = sender;
@@ -26,9 +23,6 @@ public class MessageDto {
         this.content = content;
         this.action = action;
     }
-
-    // All getters and setters...
-    // (keep your existing getters and setters)
 
 
     public Long getId() {
