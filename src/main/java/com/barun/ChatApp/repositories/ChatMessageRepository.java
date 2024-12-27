@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+//Minor changes
 @Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
     @Query("SELECT m FROM ChatMessage m WHERE m.sender = :user OR m.receiver = :user ORDER BY m.timestamp DESC")
