@@ -33,7 +33,7 @@ public class ChatMessageService {
                     return new RuntimeException("User not found");
                 });
 
-        return chatMessageRepository.findBySenderOrReceiverOrderByTimestampDesc(user, user);
+        return chatMessageRepository.findAllByParticipant(user);
     }
 
     @Transactional
