@@ -18,11 +18,11 @@ public class ChatMessage {
     @NotNull(message = "Sender is required")
     private User sender;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "receiver_id")
     private User receiver;
 
-    @Column(name = "receiver_username")
+    @Column(name = "receiver_username", insertable = true, updatable = true)
     private String receiverUsername;
 
     @Column(nullable = false)

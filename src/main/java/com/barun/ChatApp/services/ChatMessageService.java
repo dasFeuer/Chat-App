@@ -50,16 +50,21 @@ public class ChatMessageService {
         ChatMessage message = new ChatMessage();
         message.setSender(sender);
         message.setContent(content);
+        message.setReceiverUsername(receiverUsername);
 
         if (receiverOptional.isPresent()) {
-            message.setReceiver(receiverOptional.get());
-        } else {
-            logger.warn("Receiver not found: {}. Storing message without receiver.", receiverUsername);
-            message.setReceiverUsername(receiverUsername);
+            User receiver = receiverOptional.get();
+            message.setReceiver(receiver);
         }
 
+        logger.debug("About to save message: content={}, receiverUsername={}",
+                message.getContent(), message.getReceiverUsername());
+
         ChatMessage savedMessage = chatMessageRepository.save(message);
-        logger.info("Message saved successfully: {}", savedMessage.getId());
+
+        logger.debug("Saved message: id={}, receiverUsername={}",
+                savedMessage.getId(), savedMessage.getReceiverUsername());
+
         return savedMessage;
     }
 

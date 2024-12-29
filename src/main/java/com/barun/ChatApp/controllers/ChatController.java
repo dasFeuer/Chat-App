@@ -42,10 +42,19 @@ public class ChatController {
             }
 
             String senderUsername = authentication.getName();
-            logger.info("Processing message from {}", senderUsername);
+            String receiverUsername = messageDto.getReceiver(); // This is correct
+            logger.info("Processing message from {} to {}", senderUsername, receiverUsername);
 
-            String receiverUsername = messageDto.getReceiver();
+            logger.debug("Received MessageDTO: sender={}, receiver={}, content={}",
+                    messageDto.getSender(), messageDto.getReceiver(), messageDto.getContent());
+
             ChatMessage savedMessage = chatMessageService.sendMessage(senderUsername, receiverUsername, messageDto.getContent());
+
+            logger.debug("Saved message: id={}, sender={}, receiver={}, receiverUsername={}",
+                    savedMessage.getId(),
+                    savedMessage.getSender().getUsername(),
+                    savedMessage.getReceiver() != null ? savedMessage.getReceiver().getUsername() : "null",
+                    savedMessage.getReceiverUsername());
 
             MessageDto savedMessageDto = new MessageDto(
                     savedMessage.getId(),
@@ -54,7 +63,6 @@ public class ChatController {
                     savedMessage.getContent(),
                     "CREATE"
             );
-
             logger.info("Sending message to sender's queue: {}", senderUsername);
             messagingTemplate.convertAndSendToUser(
                     senderUsername,
