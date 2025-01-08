@@ -42,7 +42,7 @@ public class ChatController {
             }
 
             String senderUsername = authentication.getName();
-            String receiverUsername = messageDto.getReceiver(); // This is correct
+            String receiverUsername = messageDto.getReceiver();
             logger.info("Processing message from {} to {}", senderUsername, receiverUsername);
 
             logger.debug("Received MessageDTO: sender={}, receiver={}, content={}",
